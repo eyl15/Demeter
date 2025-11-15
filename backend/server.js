@@ -6,6 +6,7 @@ const multer = require("multer");
 const http = require("http");
 const socketIo = require("socket.io");
 const GeminiService = require("./aiService");
+const OCRService = require("./ocrService");
 const fs = require("fs");
 const path = require("path");
 
@@ -28,13 +29,22 @@ const bucket = admin.storage().bucket();
 // File upload setup
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Initialize  AI Service
+// Initialize AI Service
 let aiService;
 try {
   aiService = new GeminiService();
-  console.log("AI Service initialized");
+  console.log(" AI Service initialized");
 } catch (error) {
-  console.warn("AI Service not initialized:", error.message);
+  console.warn(" AI Service not initialized:", error.message);
+}
+
+// Initialize OCR Service
+let ocrService;
+try {
+  ocrService = new OCRService("medicalDocuments");
+  console.log(" OCR Service initialized");
+} catch (error) {
+  console.warn(" OCR Service not initialized:", error.message);
 }
 
 // ---------------- AI endpoints ----------------
@@ -76,6 +86,45 @@ app.post("/api/analyze-fridge", async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error("Fridge analysis error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ---------------- OCR endpoints ----------------
+
+// OCR endpoint - Process latest image from specific folder
+app.post("/api/process-ocr", async (req, res) => {
+  try {
+    if (!ocrService) {
+      return res.status(503).json({ error: "OCR service not available" });
+    }
+
+    const { uid, configType } = req.body;
+    
+    if (!uid) {
+      return res.status(400).json({ error: "User ID (uid) is required" });
+    }
+
+    const folder = "medical_report"; 
+    const prefix = `${uid}/images/${folder}/`;
+    const [files] = await bucket.getFiles({ prefix });
+
+    if (files.length === 0) {
+      return res.status(404).json({ error: `No images found in ${folder} folder for this user` });
+    }
+
+    files.sort((a, b) => new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated));
+    const latestFile = files[0];
+
+    console.log(`Processing latest image: ${latestFile.name}`);
+
+    const [imageBuffer] = await latestFile.download();
+    const service = configType ? new OCRService(configType) : ocrService;
+    const result = await service.processLatestImage(uid, folder);
+    
+    res.json(result);
+  } catch (error) {
+    console.error("OCR processing error:", error);
     res.status(500).json({ error: error.message });
   }
 });

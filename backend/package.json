@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "postinstall": "pip3 install --break-system-packages google-cloud-vision==3.4.1 google-cloud-storage==2.10.0 google-auth==2.25.2 firebase-admin==6.1.0 python-dotenv==1.0.0"
+  },
   "dependencies": {
     "@google/genai": "^1.29.1",
     "cors": "^2.8.5",
