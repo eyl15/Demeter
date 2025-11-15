@@ -47,6 +47,10 @@ try {
   console.warn(" OCR Service not initialized:", error.message);
 }
 
+// Register ElevenLabs routes
+const elevenlabsRouter = require('./elevenlabs/route');
+app.use('/api', elevenlabsRouter);
+
 // ---------------- AI endpoints ----------------
 
 // Analyze fridge image for specific user
