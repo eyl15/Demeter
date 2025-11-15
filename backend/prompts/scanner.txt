@@ -1,0 +1,1 @@
+Say me which ingredients are present in the fridge. Don't give me anything that you are not sure of.
