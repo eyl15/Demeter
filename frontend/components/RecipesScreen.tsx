@@ -1,14 +1,22 @@
-import { Heart, ChevronRight, X, Edit2 } from "lucide-react";
+import { Heart, ChevronRight, X, Edit2, Clock, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { searchRecipes, type RecipeBasic } from "../src/utils/spoonacular";
+import {
+  getRecipeInformation,
+  searchRecipes,
+  type RecipeBasic,
+  type RecipeDetails,
+} from "../src/utils/spoonacular";
 import { Button } from "./ui/button";
 
 export default function RecipesScreen() {
   const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null);
   const [recipeList, setRecipeList] = useState<RecipeBasic[] | null>(null);
+  const [recipeDetailList, setRecipeDetailList] = useState<
+    RecipeDetails[] | null
+  >(null);
   const [loading, setLoading] = useState(false);
 
   const handleGetRecipes = async () => {
@@ -18,14 +26,37 @@ export default function RecipesScreen() {
         "chicken salad",
         "",
         "",
-        5
+        1
       );
       setRecipeList(recipes);
+      await handleGetRecipeDetails();
       console.log("Fetched recipes:", recipes);
     } catch (error) {
       console.error("Error fetching recipes:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGetRecipeDetails = async () => {
+    if (!recipeList) return;
+    try {
+      const detailsList: RecipeDetails[] = [];
+
+      for (const recipe of recipeList) {
+        const details: RecipeDetails | null = await getRecipeInformation(
+          recipe.id
+        );
+        if (details) {
+          detailsList.push(details);
+          console.log("Fetched recipe details:", details);
+        }
+      }
+
+      setRecipeDetailList(detailsList);
+      console.log("TEST", detailsList);
+    } catch (error) {
+      console.error("Error fetching recipe details:", error);
     }
   };
 
@@ -150,7 +181,7 @@ export default function RecipesScreen() {
                     Based on Your Groceries
                   </h4>
                   <p className="text-gray-700">
-                    These recipes use items from your recent receipt scan
+                    These recipes use items from your fridge
                   </p>
                 </div>
               </div>
@@ -158,7 +189,7 @@ export default function RecipesScreen() {
           </div>
 
           <div className="space-y-3 pb-[100px]">
-            {recipeList?.map((recipe) => (
+            {recipeList?.map((recipe, index) => (
               <Card
                 key={recipe.id}
                 className="overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer"
@@ -176,16 +207,16 @@ export default function RecipesScreen() {
                 <div className="p-4">
                   <h3 className="text-gray-900 mb-2">{recipe.title}</h3>
 
-                  {/* <div className="flex items-center gap-4 mb-3 text-gray-600">
+                  <div className="flex items-center gap-4 mb-3 text-gray-600">
                     <div className="flex items-center gap-1">
                       <Clock size={16} />
-                      <span>{recipe.time}</span>
+                      <span>{recipeDetailList?.[index].readyInMinutes}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Users size={16} />
-                      <span>{recipe.servings} servings</span>
+                      <span>{recipeDetailList?.[index].servings} servings</span>
                     </div>
-                  </div> */}
+                  </div>
 
                   {/* <div className="flex flex-wrap gap-2 mb-3">
                     {recipe.tags.map((tag, index) => (
