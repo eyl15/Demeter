@@ -15,20 +15,33 @@ export default function ReceiptScanScreen({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  useEffect(() => {
+    // When camera becomes active, set up video playback
+    if (isCameraActive && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+      console.log("Video srcObject set, calling play()...");
+      videoRef.current.play().catch((err) => {
+        console.error("Error playing video:", err);
+      });
+    }
+  }, [isCameraActive, stream]);
 
   useEffect(() => {
     return () => {
       // Cleanup: stop camera when component unmounts
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach((track) => track.stop());
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [stream]);
 
   const startCamera = async () => {
+    console.log("Starting camera...");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      console.log("Requesting camera access...");
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: "environment",
           width: { ideal: 1280 },
@@ -36,14 +49,9 @@ export default function ReceiptScanScreen({
         },
         audio: false,
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // Ensure video plays on iOS
-        videoRef.current.play().catch((err) => {
-          console.error("Error playing video:", err);
-        });
-        setIsCameraActive(true);
-      }
+      console.log("Camera stream received:", mediaStream);
+      setStream(mediaStream);
+      setIsCameraActive(true);
     } catch (error) {
       console.error("Error accessing camera:", error);
       alert("Unable to access camera. Please check permissions in settings.");
@@ -63,12 +71,10 @@ export default function ReceiptScanScreen({
         setCapturedImage(imageData);
 
         // Stop camera
-        if (videoRef.current.srcObject) {
-          const tracks = (
-            videoRef.current.srcObject as MediaStream
-          ).getTracks();
-          tracks.forEach((track) => track.stop());
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
         }
+        setStream(null);
         setIsCameraActive(false);
       }
     }
@@ -93,7 +99,9 @@ export default function ReceiptScanScreen({
 
   const handleRetake = () => {
     setCapturedImage(null);
-    startCamera();
+    setStream(null);
+    setIsCameraActive(false);
+    setTimeout(() => startCamera(), 100);
   };
 
   const handleScan = () => {
@@ -139,15 +147,19 @@ export default function ReceiptScanScreen({
               autoPlay
               playsInline
               muted
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ WebkitPlaysinline: "true" } as React.CSSProperties}
+              className="absolute inset-0 w-full h-full object-cover bg-black"
+              style={
+                {
+                  WebkitPlaysinline: "true",
+                } as React.CSSProperties
+              }
             />
             {/* Overlay with scanning frame */}
-            <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
               <div className="w-[280px] h-[360px] border-2 border-white border-dashed rounded-lg" />
             </div>
             {/* Corner Indicators */}
-            <div className="absolute z-20 w-[280px] h-[360px]">
+            <div className="absolute z-20 w-[280px] h-[360px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
               {/* Top Left */}
               <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl-lg" />
               {/* Top Right */}
