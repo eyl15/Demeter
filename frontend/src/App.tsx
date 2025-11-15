@@ -82,8 +82,8 @@ export default function App() {
   ].includes(currentScreen);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="relative w-full max-w-[390px] h-[844px] bg-white shadow-2xl overflow-hidden">
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="relative w-full max-w-[390px] h-screen bg-white shadow-2xl overflow-hidden">
         {renderScreen()}
         {showBottomNav && (
           <BottomNav

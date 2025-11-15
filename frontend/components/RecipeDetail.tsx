@@ -1,7 +1,15 @@
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
-import { ArrowLeft, Clock, Users, Heart, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import {
+  ArrowLeft,
+  Clock,
+  Users,
+  Heart,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 interface Recipe {
   id: number;
@@ -24,22 +32,22 @@ interface RecipeDetailProps {
 
 export function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
   const steps = [
-    'Preheat oven to 400°F (200°C). Line a baking sheet with parchment paper.',
-    'Cut sweet potatoes into 1-inch cubes. Toss with 1 tbsp olive oil, salt, and pepper.',
-    'Spread sweet potatoes on the baking sheet and roast for 25-30 minutes.',
-    'Meanwhile, season salmon fillets with remaining olive oil, lemon juice, and herbs.',
-    'Heat a skillet over medium-high heat. Place salmon skin-side down.',
-    'Cook for 4-5 minutes per side until salmon is cooked through and flakes easily.',
-    'Serve salmon over roasted sweet potatoes. Garnish with fresh herbs.'
+    "Preheat oven to 400°F (200°C). Line a baking sheet with parchment paper.",
+    "Cut sweet potatoes into 1-inch cubes. Toss with 1 tbsp olive oil, salt, and pepper.",
+    "Spread sweet potatoes on the baking sheet and roast for 25-30 minutes.",
+    "Meanwhile, season salmon fillets with remaining olive oil, lemon juice, and herbs.",
+    "Heat a skillet over medium-high heat. Place salmon skin-side down.",
+    "Cook for 4-5 minutes per side until salmon is cooked through and flakes easily.",
+    "Serve salmon over roasted sweet potatoes. Garnish with fresh herbs.",
   ];
 
   const fullIngredients = [
-    { name: 'Salmon Fillet', amount: '1.5 lbs', owned: true },
-    { name: 'Sweet Potatoes', amount: '2 large', owned: true },
-    { name: 'Olive Oil', amount: '2 tbsp', owned: true },
-    { name: 'Lemon', amount: '1', owned: false },
-    { name: 'Fresh Dill', amount: '2 tbsp', owned: false },
-    { name: 'Salt & Pepper', amount: 'to taste', owned: true }
+    { name: "Salmon Fillet", amount: "1.5 lbs", owned: true },
+    { name: "Sweet Potatoes", amount: "2 large", owned: true },
+    { name: "Olive Oil", amount: "2 tbsp", owned: true },
+    { name: "Lemon", amount: "1", owned: false },
+    { name: "Fresh Dill", amount: "2 tbsp", owned: false },
+    { name: "Salt & Pepper", amount: "to taste", owned: true },
   ];
 
   return (
@@ -66,7 +74,7 @@ export function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
       <div className="max-w-md mx-auto px-6 py-6">
         <div className="mb-6">
           <h1 className="mb-3">{recipe.name}</h1>
-          
+
           <div className="flex items-center gap-4 mb-4 text-gray-600">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
@@ -120,7 +128,9 @@ export function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
             <div>
               <h3 className="text-green-900 mb-2">Health Note</h3>
               <p className="text-sm text-green-700">
-                This recipe is specially designed for managing blood pressure. It's low in sodium (under 300mg per serving) and rich in omega-3 fatty acids and potassium, which support cardiovascular health.
+                This recipe is specially designed for managing blood pressure.
+                It's low in sodium (under 300mg per serving) and rich in omega-3
+                fatty acids and potassium, which support cardiovascular health.
               </p>
             </div>
           </div>
@@ -137,15 +147,17 @@ export function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
                   ) : (
                     <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
                   )}
-                  <span className={ingredient.owned ? '' : 'text-gray-500'}>
+                  <span className={ingredient.owned ? "" : "text-gray-500"}>
                     {ingredient.name}
                   </span>
                 </div>
-                <span className="text-sm text-gray-600">{ingredient.amount}</span>
+                <span className="text-sm text-gray-600">
+                  {ingredient.amount}
+                </span>
               </div>
             ))}
           </div>
-          
+
           <Button variant="outline" className="w-full mt-4">
             Add Missing Items to Shopping List
           </Button>
@@ -163,9 +175,9 @@ export function RecipeDetail({ recipe, onBack }: RecipeDetailProps) {
               </div>
             ))}
           </div>
-        </Card>
+        </Card> 
 
-        <div className="space-y-3 pb-6">
+        <div className="space-y-3 pb-[100px]">
           <Button className="w-full bg-emerald-500 hover:bg-emerald-600">
             Add to Meal Plan
           </Button>

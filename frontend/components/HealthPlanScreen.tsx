@@ -1,7 +1,15 @@
-import { Heart, Target, TrendingUp, Award, ShoppingBag, Utensils, Activity } from 'lucide-react';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
+import {
+  Heart,
+  Target,
+  TrendingUp,
+  Award,
+  ShoppingBag,
+  Utensils,
+  Activity,
+} from "lucide-react";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Progress } from "./ui/progress";
 
 export default function HealthPlanScreen() {
   return (
@@ -9,7 +17,9 @@ export default function HealthPlanScreen() {
       {/* Header */}
       <div className="bg-gradient-to-br from-purple-600 to-purple-700 px-6 py-8 text-white">
         <h2 className="text-white mb-1">Your Health Plan</h2>
-        <p className="text-purple-100">Personalized recommendations for better health</p>
+        <p className="text-purple-100">
+          Personalized recommendations for better health
+        </p>
       </div>
 
       {/* Content */}
@@ -48,20 +58,30 @@ export default function HealthPlanScreen() {
           </div>
           <div className="space-y-3">
             <div className="flex gap-3 p-3 bg-green-50 rounded-lg">
-              <Activity className="text-green-600 flex-shrink-0 mt-0.5" size={20} />
+              <Activity
+                className="text-green-600 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <div>
-                <h4 className="text-gray-900 mb-1">Blood Pressure Management</h4>
+                <h4 className="text-gray-900 mb-1">
+                  Blood Pressure Management
+                </h4>
                 <p className="text-gray-700">
-                  Your low-sodium choices this week have been excellent. Keep it up!
+                  Your low-sodium choices this week have been excellent. Keep it
+                  up!
                 </p>
               </div>
             </div>
             <div className="flex gap-3 p-3 bg-blue-50 rounded-lg">
-              <TrendingUp className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+              <TrendingUp
+                className="text-blue-600 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <div>
                 <h4 className="text-gray-900 mb-1">Cholesterol Improvement</h4>
                 <p className="text-gray-700">
-                  Adding more fiber and omega-3 rich foods shows positive trends.
+                  Adding more fiber and omega-3 rich foods shows positive
+                  trends.
                 </p>
               </div>
             </div>
@@ -70,7 +90,9 @@ export default function HealthPlanScreen() {
 
         {/* Recommendations */}
         <div className="mb-4">
-          <h3 className="text-gray-900 mb-3 px-2">Personalized Recommendations</h3>
+          <h3 className="text-gray-900 mb-3 px-2">
+            Personalized Recommendations
+          </h3>
           <div className="space-y-3">
             {/* Nutrition */}
             <Card className="p-4 bg-white">
@@ -81,12 +103,16 @@ export default function HealthPlanScreen() {
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-1">
                     <h4 className="text-gray-900">Nutrition Tips</h4>
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                    <Badge
+                      variant="secondary"
+                      className="bg-orange-100 text-orange-700"
+                    >
                       New
                     </Badge>
                   </div>
                   <p className="text-gray-700 mb-2">
-                    Try adding more leafy greens to your meals for better blood sugar control
+                    Try adding more leafy greens to your meals for better blood
+                    sugar control
                   </p>
                   <button className="text-orange-600">Learn More →</button>
                 </div>
@@ -102,7 +128,8 @@ export default function HealthPlanScreen() {
                 <div className="flex-1">
                   <h4 className="text-gray-900 mb-1">Smart Shopping</h4>
                   <p className="text-gray-700 mb-2">
-                    Look for "No Salt Added" labels when buying canned vegetables
+                    Look for "No Salt Added" labels when buying canned
+                    vegetables
                   </p>
                   <button className="text-blue-600">View Tips →</button>
                 </div>
@@ -118,7 +145,8 @@ export default function HealthPlanScreen() {
                 <div className="flex-1">
                   <h4 className="text-gray-900 mb-1">Lifestyle Habits</h4>
                   <p className="text-gray-700 mb-2">
-                    Consider meal prepping on Sundays to maintain consistent healthy eating
+                    Consider meal prepping on Sundays to maintain consistent
+                    healthy eating
                   </p>
                   <button className="text-green-600">Get Started →</button>
                 </div>

@@ -18,7 +18,7 @@ const onboardingData = [
     icon: Apple,
     title: "Smart Grocery Insights",
     description:
-      "Scan receipts to discover healthier alternatives and personalized recipes.",
+      "Scan your fridge to discover healthier alternatives and personalized recipes.",
     color: "text-green-500",
   },
   {
@@ -37,7 +37,7 @@ export default function OnboardingScreen({
   const Icon = data.icon;
 
   return (
-    <div className="flex flex-col h-full px-6 py-12 bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex flex-col h-full px-6 py-4 bg-gradient-to-b from-blue-50 to-white">
       <div className="flex justify-end mb-8">
         <div className="flex gap-2">
           {[1, 2, 3].map((dot) => (

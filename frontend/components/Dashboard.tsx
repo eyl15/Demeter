@@ -19,7 +19,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     {
       id: "scan",
       icon: Camera,
-      label: "Scan Receipt",
+      label: "Scan Fridge",
       color: "blue",
       gradient: "from-blue-500 to-blue-600",
     },

@@ -189,3 +189,13 @@
 html {
   font-size: var(--font-size);
 }
+
+/* Hide scrollbars while keeping scroll functionality */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
+.overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

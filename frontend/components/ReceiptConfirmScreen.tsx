@@ -108,7 +108,7 @@ export default function ReceiptConfirmScreen({ items: initialItems, onConfirm, o
           Confirm & Get Recipes
         </Button>
         <Button variant="outline" onClick={onBack} className="w-full">
-          Rescan Receipt
+          Rescan
         </Button>
       </div>
     </div>
