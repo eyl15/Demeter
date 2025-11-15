@@ -1,22 +1,34 @@
-import {
-  Clock,
-  Users,
-  Heart,
-  AlertCircle,
-  ChevronRight,
-  X,
-  Edit2,
-} from "lucide-react";
+import { Heart, ChevronRight, X, Edit2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
-import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { searchRecipes, type RecipeBasic } from "../src/utils/spoonacular";
+import { Button } from "./ui/button";
 
 export default function RecipesScreen() {
   const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null);
+  const [recipeList, setRecipeList] = useState<RecipeBasic[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleGetRecipes = async () => {
+    setLoading(true);
+    try {
+      const recipes: RecipeBasic[] = await searchRecipes(
+        "chicken salad",
+        "",
+        "",
+        5
+      );
+      setRecipeList(recipes);
+      console.log("Fetched recipes:", recipes);
+    } catch (error) {
+      console.error("Error fetching recipes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [editingMeals, setEditingMeals] = useState({
     breakfast: "",
     lunch: "",
@@ -102,45 +114,15 @@ export default function RecipesScreen() {
     }
   };
 
-  const recipes = [
-    {
-      id: 1,
-      name: "Grilled Salmon with Roasted Broccoli",
-      time: "25 min",
-      servings: 2,
-      calories: 420,
-      tags: ["Low Sodium", "Heart Healthy"],
-      healthNote: "Rich in Omega-3, great for cholesterol management",
-      ingredients: ["Salmon Fillet", "Broccoli", "Olive Oil"],
-    },
-    {
-      id: 2,
-      name: "Mediterranean Chicken Bowl",
-      time: "30 min",
-      servings: 4,
-      calories: 380,
-      tags: ["Low Carb", "High Protein"],
-      healthNote: "Balanced meal, supports blood pressure management",
-      ingredients: ["Chicken Breast", "Tomatoes", "Spinach", "Olive Oil"],
-    },
-    {
-      id: 3,
-      name: "Greek Yogurt Parfait",
-      time: "5 min",
-      servings: 1,
-      calories: 220,
-      tags: ["Quick", "Protein"],
-      healthNote: "Low sugar, high protein breakfast option",
-      ingredients: ["Greek Yogurt", "Eggs"],
-    },
-  ];
-
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       {/* Header */}
       <div className="bg-white px-6 py-6 border-b flex-shrink-0">
         <h2 className="text-gray-900 mb-1">Your Recipes</h2>
         <p className="text-gray-600">Personalized for your health goals</p>
+        <Button onClick={handleGetRecipes} disabled={loading} className="m-4">
+          Apples
+        </Button>
       </div>
 
       <Tabs
@@ -176,25 +158,25 @@ export default function RecipesScreen() {
           </div>
 
           <div className="space-y-3 pb-[100px]">
-            {recipes.map((recipe) => (
+            {recipeList?.map((recipe) => (
               <Card
                 key={recipe.id}
                 className="overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="h-32 bg-gradient-to-br from-green-400 to-green-600 relative">
                   <ImageWithFallback
-                    src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=200&fit=crop`}
-                    alt={recipe.name}
+                    src={recipe.image}
+                    alt={recipe.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded">
-                    <span className="text-gray-900">{recipe.calories} cal</span>
+                  <div className="absolute top-2 right-2 px-2 py-1 rounded">
+                    <Heart className="text-red-600 bg-transparent" size={28} />
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="text-gray-900 mb-2">{recipe.name}</h3>
+                  <h3 className="text-gray-900 mb-2">{recipe.title}</h3>
 
-                  <div className="flex items-center gap-4 mb-3 text-gray-600">
+                  {/* <div className="flex items-center gap-4 mb-3 text-gray-600">
                     <div className="flex items-center gap-1">
                       <Clock size={16} />
                       <span>{recipe.time}</span>
@@ -203,9 +185,9 @@ export default function RecipesScreen() {
                       <Users size={16} />
                       <span>{recipe.servings} servings</span>
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  {/* <div className="flex flex-wrap gap-2 mb-3">
                     {recipe.tags.map((tag, index) => (
                       <Badge
                         key={index}
@@ -215,15 +197,15 @@ export default function RecipesScreen() {
                         {tag}
                       </Badge>
                     ))}
-                  </div>
+                  </div> */}
 
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex gap-2">
+                  {/* <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex gap-2">
                     <AlertCircle
                       className="text-orange-600 flex-shrink-0 mt-0.5"
                       size={16}
                     />
                     <p className="text-gray-700">{recipe.healthNote}</p>
-                  </div>
+                  </div> */}
 
                   <div className="mt-3 pt-3 border-t">
                     <div className="flex items-center justify-between">
