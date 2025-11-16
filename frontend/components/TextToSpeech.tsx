@@ -21,7 +21,7 @@ const TextToSpeech: React.FC<TextToSpeechProps> = ({
   voiceId,
   label = "Play Audio",
   className,
-  apiBaseUrl = "${import.meta.env.VITE_API_URL}",
+  apiBaseUrl = `${import.meta.env.VITE_API_URL}`,
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
