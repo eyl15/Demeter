@@ -28,7 +28,7 @@ const uploadToServer = async (
   formData.append("folder", folder); // send folder info to backend
 
   try {
-    const res = await fetch("${import.meta.env.VITE_API_URL}/upload", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
       method: "POST",
       body: formData,
     });
