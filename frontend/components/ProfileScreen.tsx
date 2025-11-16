@@ -17,6 +17,7 @@ export default function ProfileScreen() {
   const [firstName, setFirstName] = useState("Loading");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [activeConditions, setActiveConditions] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -48,6 +49,21 @@ export default function ProfileScreen() {
         
         setFirstName(firstName);
         setLastName(lastName);
+
+        // Extract active conditions
+        const conditions: string[] = [];
+        if (data.conditions?.highBP) {
+          conditions.push("High Blood Pressure");
+        }
+        if (data.conditions?.highCholesterol) {
+          conditions.push("High Cholesterol");
+        }
+        if (data.conditions?.diabetes) {
+          conditions.push("Diabetes");
+        }
+        
+        setActiveConditions(conditions);
+        console.log("[PROFILE] Active conditions:", conditions);
       } catch (err) {
         console.error("[PROFILE] Failed to fetch healthdata:", err);
         // Gracefully handle network errors; leave names as defaults
@@ -91,12 +107,24 @@ export default function ProfileScreen() {
             <div className="py-3">
               <p className="text-gray-600 mb-2">Active Conditions:</p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full">
-                  High Blood Pressure
-                </span>
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
-                  High Cholesterol
-                </span>
+                {activeConditions.length > 0 ? (
+                  activeConditions.map((condition, index) => (
+                    <span
+                      key={index}
+                      className={`px-3 py-1 rounded-full ${
+                        condition === "High Blood Pressure"
+                          ? "bg-red-100 text-red-700"
+                          : condition === "High Cholesterol"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {condition}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500">No active conditions</span>
+                )}
               </div>
             </div>
           </Card>
