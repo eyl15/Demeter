@@ -13,7 +13,25 @@ const path = require("path");
 
 // Initialize Express
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+  "https://demeter-p8z6.vercel.app", // your frontend preview
+  "https://demeter-o662.vercel.app",  // your alias/general URL
+  "https://demeter-o662-8o1vntqyu-erics-projects-4a0395b7.vercel.app" // old preview if needed
+];
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin (like server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("CORS not allowed for this origin"));
+    }
+  },
+  credentials: true // if you need cookies/auth
+}));
+app.options("*", cors()); // allow all preflight requests
+
 app.use(express.json());
 
 // HTTP + WebSocket setup
