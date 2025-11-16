@@ -30,8 +30,6 @@ app.use(cors({
   },
   credentials: true // if you need cookies/auth
 }));
-app.options("/*", cors()); // allow all preflight requests
-
 app.use(express.json());
 
 // HTTP + WebSocket setup
