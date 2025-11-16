@@ -31,11 +31,11 @@ import { uploadBookmarkedRecipe } from "../src/utils/uploadService";
 
 import TextToSpeech from "./TextToSpeech";
 
-interface RecipesScreenProps {
-  onNavigate?: (screen: string) => void;
-}
+import { uploadSavedRecipe } from "../src/utils/uploadService";
+import { updateDailyNutritionTotals } from "../src/utils/dailyNutrition";
 
-export default function App({ onNavigate }: RecipesScreenProps) {
+// INGREDIENTS the user cannot eat
+export default function App() {
   const [recipeList, setRecipeList] = useState<RecipeDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +104,8 @@ export default function App({ onNavigate }: RecipesScreenProps) {
 
     fetchCategorizationData();
   }, []);
+
+  const uid = auth.currentUser?.uid;
 
   const getRecipeSteps = (recipe: RecipeDetails) => {
     if (
@@ -257,6 +259,32 @@ export default function App({ onNavigate }: RecipesScreenProps) {
     setSelectedRecipe(recipe);
     setLoadingRecipeDetails(false);
   };
+
+  const saveRecipeToDatabase = async (recipe: RecipeDetails) => {
+    try {
+      if (!uid) {
+        console.warn("User not logged in — cannot save recipe");
+        return;
+      }
+
+      const jsonString = JSON.stringify(recipe, null, 2);
+      const timestamp = Date.now();
+
+      const file = new File([jsonString], `${timestamp}-${recipe.id}.json`, {
+        type: "application/json",
+      });
+
+      await uploadSavedRecipe(file, uid, () => {
+        console.log("Recipe saved!");
+      });
+
+      await updateDailyNutritionTotals(uid);
+
+    } catch (error) {
+      console.error("Error saving recipe:", error);
+    }
+  };
+
 
   // ------------------- Render -------------------
   
@@ -612,6 +640,20 @@ export default function App({ onNavigate }: RecipesScreenProps) {
               </div>
             </div>
           ) : null}
+
+          {/* Cook Button */}
+          <div className="sticky bottom-0 bg-white/90 backdrop-blur-xl p-4 border-t border-gray-200">
+            <Button
+              className="w-full py-5 text-lg rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-md active:scale-[0.98] transition"
+              onClick={() => {
+                if (selectedRecipe) {
+                  saveRecipeToDatabase(selectedRecipe);
+                }
+              }}
+            >
+              Cook?
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

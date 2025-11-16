@@ -1,5 +1,5 @@
 import { db } from "../../firebaseConfig";
-import { collection, getDocs, setDoc, doc, updateDoc } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 
 export interface PersonalInfo {
   age: number;
@@ -79,26 +79,52 @@ export async function updateDailyNutritionTotals(uid: string) {
     const response = await fetch(`http://localhost:8080/${uid}/recipes/saved/${dateKey}`);
     if (!response.ok) {
       console.warn(`[RECIPES] No saved recipes found for ${uid} on ${dateKey}`);
-      return { calories: 0, sugar: 0, sodium: 0 };
+      await setDoc(
+        doc(db, "users", uid, "dailyNutrition", dateKey),
+        { calories: 0, sodium: 0, sugar: 0 },
+        { merge: true }
+      );
+      return { calories: 0, sodium: 0, sugar: 0 };
     }
 
     const recipes = await response.json();
 
     let totalCalories = 0;
-    let totalSugar = 0;
     let totalSodium = 0;
+    let totalSugar = 0;
 
-    recipes.forEach((r: { calories?: number; sugar?: number; sodium?: number }) => {
-      totalCalories += r.calories ?? 0;
-      totalSugar += r.sugar ?? 0;
-      totalSodium += r.sodium ?? 0;
-    });
+    for (const recipe of recipes) {
+      if (!recipe?.nutrition?.nutrients) continue;
 
-    console.log(`[RECIPES] Daily totals for ${uid} on ${dateKey}: calories=${totalCalories}, sugar=${totalSugar}, sodium=${totalSodium}`);
+      const nutrients = recipe.nutrition.nutrients;
+
+      const calories = nutrients.find(n => n.name === "Calories")?.amount ?? 0;
+      const sodium = nutrients.find(n => n.name === "Sodium")?.amount ?? 0;
+      const sugar = nutrients.find(n => n.name === "Sugar")?.amount ?? 0;
+
+      totalCalories += calories;
+      totalSodium += sodium;
+      totalSugar += sugar;
+    }
+
+    console.log(
+      `[RECIPES] Daily totals for ${uid} on ${dateKey}: ` +
+      `calories=${totalCalories}, sugar=${totalSugar}, sodium=${totalSodium}`
+    );
+
+    await setDoc(
+      doc(db, "users", uid, "dailyNutrition", dateKey),
+      {
+        calories: totalCalories,
+        sugar: totalSugar,
+        sodium: totalSodium,
+      },
+      { merge: true }
+    );
 
     return { calories: totalCalories, sugar: totalSugar, sodium: totalSodium };
   } catch (err) {
-    console.error("[RECIPES] Error fetching saved recipes:", err);
+    console.error("[RECIPES] Error processing saved recipes:", err);
     return { calories: 0, sugar: 0, sodium: 0 };
   }
 }
