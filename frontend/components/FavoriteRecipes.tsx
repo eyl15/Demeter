@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { ArrowLeft, Sparkles, ChefHat } from "lucide-react";
+import { ArrowLeft , ChefHat } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { getBookmarkedRecipe } from "../src/utils/uploadService";
 import { auth } from "../firebaseConfig";

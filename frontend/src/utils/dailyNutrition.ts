@@ -21,6 +21,12 @@ export interface Dietary {
   lowCarb: boolean;
 }
 
+export interface Nutrient {
+  name: string;
+  amount: number;
+  unit?: string; // optional
+}
+
 /**
  * Calculate estimated daily calorie needs based on Mifflin-St Jeor formula.
  * Assumes sedentary activity (multiply by 1.2). Returns rounded calories.
@@ -96,11 +102,12 @@ export async function updateDailyNutritionTotals(uid: string) {
     for (const recipe of recipes) {
       if (!recipe?.nutrition?.nutrients) continue;
 
-      const nutrients = recipe.nutrition.nutrients;
+      const nutrients: Nutrient[] = recipe.nutrition.nutrients;
 
       const calories = nutrients.find(n => n.name === "Calories")?.amount ?? 0;
-      const sodium = nutrients.find(n => n.name === "Sodium")?.amount ?? 0;
-      const sugar = nutrients.find(n => n.name === "Sugar")?.amount ?? 0;
+      const sodium   = nutrients.find(n => n.name === "Sodium")?.amount ?? 0;
+      const sugar    = nutrients.find(n => n.name === "Sugar")?.amount ?? 0;
+
 
       totalCalories += calories;
       totalSodium += sodium;

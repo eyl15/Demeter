@@ -83,11 +83,6 @@ const App = () => {
     setCurrentScreen("home");
   };
 
-  const handleScanComplete = (items: string[]) => {
-    setScannedItems(items);
-    setCurrentScreen("receipt-confirm");
-  };
-
   const handleReceiptConfirm = () => {
     setCurrentScreen("home");
   };

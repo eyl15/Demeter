@@ -20,8 +20,6 @@ import type {
   Conditions,
   Dietary,
 } from "../src/utils/dailyNutrition";
-import { db } from "../firebaseConfig";
-import { collection, doc, getDoc } from "firebase/firestore";
 
 interface HealthProfile {
   uid: string;
