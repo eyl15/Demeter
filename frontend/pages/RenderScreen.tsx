@@ -15,7 +15,7 @@ import { auth } from "../firebaseConfig";
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState<string>("onboarding");
   const [onboardingStep, setOnboardingStep] = useState(1);
-  const [scannedItems, setScannedItems] = useState<string[]>([]);
+  const [scannedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [healthProfile, setHealthProfile] = useState<any>(null);
 

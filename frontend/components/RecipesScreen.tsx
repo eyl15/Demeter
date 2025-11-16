@@ -411,7 +411,7 @@ export default function RecipesScreen({
           </div>
         ) : recipeList.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
-            {recipeList.map((recipe, index) => (
+            {recipeList.map((recipe) => (
               <Card
                 key={recipe.id}
                 onClick={() => {
