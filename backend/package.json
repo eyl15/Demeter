@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "pip install --upgrade pip && pip install -r backend/ocr/requirements.txt"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.24.1",
