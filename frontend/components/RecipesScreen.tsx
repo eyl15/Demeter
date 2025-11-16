@@ -8,6 +8,7 @@ import {
   Sparkles,
   Utensils,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Card } from "../components/ui/card";
@@ -23,14 +24,10 @@ import {
   Dialog,
   DialogContent,
 } from "../components/ui/dialog";
+import { getCategorization, type CategorizationResult } from "../src/utils/healthPlanService";
+import { auth } from "../firebaseConfig";
 
 import TextToSpeech from "./TextToSpeech";
-
-// Mock fridge INGREDIENTS
-const FRIDGE_INGREDIENTS = ["chicken", "milk", "carrot", "yeast"];
-
-// INGREDIENTS the user cannot eat
-const EXCLUDE_INGREDIENTS = ["egg", "bread"];
 
 export default function App() {
   const [recipeList, setRecipeList] = useState<RecipeDetails[]>([]);
@@ -43,6 +40,64 @@ export default function App() {
   const [savedRecipes, setSavedRecipes] = useState<Set<number>>(new Set());
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [selectedRecipeSteps, setSelectedRecipeSteps] = useState<string>("");
+  const [includeIngredients, setIncludeIngredients] = useState<string[]>([]);
+  const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
+  const [loadingIngredients, setLoadingIngredients] = useState(true);
+
+  // Fetch categorization data on mount
+  useEffect(() => {
+    console.log("🔍 RecipesScreen: useEffect triggered - starting to fetch categorization data");
+    
+    const fetchCategorizationData = async () => {
+      console.log("📊 RecipesScreen: Setting loadingIngredients to true");
+      setLoadingIngredients(true);
+      
+      try {
+        console.log("👤 RecipesScreen: Checking current user from auth");
+        const user = auth.currentUser;
+        console.log("👤 RecipesScreen: Current user:", user ? `UID: ${user.uid}` : "No user signed in");
+        
+        if (!user) {
+          console.error("❌ RecipesScreen: No user signed in");
+          setError("Please sign in to view recipes");
+          setLoadingIngredients(false);
+          return;
+        }
+
+        console.log("💾 RecipesScreen: Attempting to get cached categorization data");
+        // Try to get cached categorization data
+        const cachedData = getCategorization();
+        console.log("💾 RecipesScreen: Cached data result:", cachedData);
+        
+        if (cachedData) {
+          console.log("✅ RecipesScreen: Found cached data:", {
+            include: cachedData.include,
+            exclude: cachedData.exclude,
+            timestamp: cachedData.timestamp
+          });
+          
+          setIncludeIngredients(cachedData.include || []);
+          setExcludeIngredients(cachedData.exclude || []);
+          
+          console.log("✅ RecipesScreen: Successfully set ingredients:", {
+            includeCount: (cachedData.include || []).length,
+            excludeCount: (cachedData.exclude || []).length
+          });
+        } else {
+          console.warn("⚠️ RecipesScreen: No cached categorization data found");
+          setError("No health plan data found. Please complete your health profile setup first.");
+        }
+      } catch (err) {
+        console.error("❌ RecipesScreen: Error loading categorization data:", err);
+        setError("Failed to load ingredient preferences");
+      } finally {
+        console.log("🏁 RecipesScreen: Setting loadingIngredients to false");
+        setLoadingIngredients(false);
+      }
+    };
+
+    fetchCategorizationData();
+  }, []);
 
   const getRecipeSteps = (recipe: RecipeDetails) => {
     if (
@@ -60,24 +115,41 @@ export default function App() {
   };
 
   const handleGetRecipes = async () => {
-    console.log("Fetching recipes...");
+    console.log("🔍 RecipesScreen: handleGetRecipes called");
+    console.log("📝 RecipesScreen: Include ingredients:", includeIngredients);
+    console.log("📝 RecipesScreen: Exclude ingredients:", excludeIngredients);
+
+    if (includeIngredients.length === 0) {
+      console.error("❌ RecipesScreen: No include ingredients available");
+      setError("No ingredients available. Please complete your health profile setup first.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
     try {
+      console.log("🔎 RecipesScreen: Searching recipes with ingredients:", includeIngredients);
       // Get recipes matching fridge ingredients
       const good_recipes = await findRecipesByIngredients(
-        FRIDGE_INGREDIENTS,
+        includeIngredients,
         10,
         1,
         true
       );
+      console.log("✅ RecipesScreen: Found recipes:", good_recipes.length);
 
       const good_ids = good_recipes.map((r) => r.id);
+      console.log("📋 RecipesScreen: Recipe IDs:", good_ids);
 
       // Bulk fetch full info
+      console.log("📊 RecipesScreen: Fetching bulk recipe information");
       const full_info = await getRecipeInformationBulk(good_ids, true);
+      console.log("✅ RecipesScreen: Retrieved full info for", full_info.length, "recipes");
 
       // Lowercase the excluded ingredients
-      const loweredBad = EXCLUDE_INGREDIENTS.map((b) => b.toLowerCase());
+      const loweredBad = excludeIngredients.map((b) => b.toLowerCase());
+      console.log("🚫 RecipesScreen: Lowercased excluded ingredients:", loweredBad);
 
       // Filter recipes that do not contain any excluded ingredient
       const valid_recipes = full_info.filter((recipe: any) => {
@@ -88,19 +160,23 @@ export default function App() {
           .filter(Boolean);
 
         // Use substring match for multi-word ingredients
-        const hasBadIngredient = ingredients.some((ing) =>
+        const hasBadIngredient = ingredients.some((ing: string) =>
           loweredBad.some((bad) => ing.includes(bad))
         );
 
         return !hasBadIngredient;
       });
 
-      console.log("Valid recipes:", valid_recipes.length);
+      console.log("✅ RecipesScreen: Valid recipes after filtering:", valid_recipes.length);
       setRecipeList(valid_recipes);
-      console.log(valid_recipes);
+      console.log("📋 RecipesScreen: Final recipe list:", valid_recipes);
     } catch (err) {
-      console.error("Error fetching recipes:", err);
+      console.error("❌ RecipesScreen: Error fetching recipes:", err);
+      setError("Failed to fetch recipes. Please try again.");
       setRecipeList([]);
+    } finally {
+      console.log("🏁 RecipesScreen: Setting loading to false");
+      setLoading(false);
     }
   };
 
@@ -134,6 +210,19 @@ export default function App() {
   };
 
   // ------------------- Render -------------------
+  
+  // Show loading state while fetching ingredients
+  if (loadingIngredients) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={48} className="animate-spin text-violet-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading your personalized recipes...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pb-20 overflow-y-auto">
       {/* Mobile-Optimized Header */}
@@ -149,7 +238,7 @@ export default function App() {
               </p>
               <h1 className="text-gray-900 mb-1">Recipes from Your Fridge</h1>
               <p className="text-gray-600 text-sm">
-                {FRIDGE_INGREDIENTS.length} INGREDIENTS ready
+                {includeIngredients.length} ingredients ready
               </p>
             </div>
             <Button
@@ -161,27 +250,31 @@ export default function App() {
               <span className="hidden sm:inline">Fridge</span>
             </Button>
           </div>
-          {/* Fridge INGREDIENTS Preview */}
+          {/* Fridge Ingredients Preview */}
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <ChefHat size={14} className="text-gray-600" />
               <span className="text-xs text-gray-600">
-                Available INGREDIENTS
+                Available Ingredients
               </span>
             </div>
-            <div className="overflow-x-auto -mx-4 px-4 scrollbar-hidden">
-              <div className="flex gap-2 pb-2">
-                {FRIDGE_INGREDIENTS.map((ingredient, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200 border rounded-full px-3 py-1 text-xs whitespace-nowrap flex-shrink-0"
-                  >
-                    {ingredient}
-                  </Badge>
-                ))}
+            {includeIngredients.length > 0 ? (
+              <div className="overflow-x-auto -mx-4 px-4 scrollbar-hidden">
+                <div className="flex gap-2 pb-2">
+                  {includeIngredients.map((ingredient, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200 border rounded-full px-3 py-1 text-xs whitespace-nowrap flex-shrink-0"
+                    >
+                      {ingredient}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-sm text-gray-500">No ingredients available</p>
+            )}
           </div>
         </div>
       </div>
@@ -269,11 +362,18 @@ export default function App() {
               </Card>
             ))}
           </div>
+        ) : includeIngredients.length === 0 ? (
+          <Card className="p-16 text-center bg-white border-0 shadow-sm rounded-3xl">
+            <h3 className="text-gray-900 mb-2">No ingredients available</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              Please complete your health profile setup to get personalized recipes
+            </p>
+          </Card>
         ) : (
           <Card className="p-16 text-center bg-white border-0 shadow-sm rounded-3xl">
             <h3 className="text-gray-900 mb-2">No recipes found</h3>
             <p className="text-gray-600 mb-4 text-sm">
-              Search by Ingredients in your Fridge
+              Search by ingredients in your fridge
             </p>
             <Button
               onClick={() => handleGetRecipes()}
