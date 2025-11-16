@@ -12,7 +12,7 @@ const path = require('path');
 const { fridgeAnalysisConfig, ingredientsAnalysisConfig } = require('./aiConfig');
 
 class aiService {
-  constructor(apiKey = process.env.GEMINI_API_KEY) {
+  constructor(apiKey = process.env.GEMINI_API_KEY, firebaseAdmin = null) {
     if (!apiKey) {
       throw new Error("GEMINI_API_KEY not found in environment variables");
     }
@@ -21,11 +21,54 @@ class aiService {
       apiKey: apiKey,
     });
     
+    // Store Firebase Admin reference for fetching health data
+    this.admin = firebaseAdmin;
+    
     // All configs from aiConfig.js
     this.configs = {
       fridgeAnalysis: fridgeAnalysisConfig,
       ingredientsAnalysis: ingredientsAnalysisConfig,
     };
+    // console.log('[VOICE-SERVICE] ✓ Configs set');
+  }
+
+  /**
+   * Fetch health data from Firebase Storage for a specific user
+   * @param {string} uid - User ID
+   * @returns {Promise<Object|null>} Health data JSON or null if not found
+   */
+  async fetchHealthData(uid) {
+    if (!this.admin) {
+      console.warn('Firebase Admin not configured, skipping health data fetch');
+      return null;
+    }
+
+    try {
+      const bucket = this.admin.storage().bucket();
+      const prefix = `${uid}/healthdata/`;
+      const [files] = await bucket.getFiles({ prefix });
+
+      if (!files || files.length === 0) {
+        console.warn(`No health data found for uid: ${uid}`);
+        return null;
+      }
+
+      // Sort by timestamp in filename to get the latest
+      const latestFile = files.sort((a, b) => {
+        const aFileName = a.name.split('/').pop() || '';
+        const bFileName = b.name.split('/').pop() || '';
+        const aTime = parseInt(aFileName.split('-')[0] || '0');
+        const bTime = parseInt(bFileName.split('-')[0] || '0');
+        return bTime - aTime;
+      })[0];
+
+      const [contents] = await latestFile.download();
+      const jsonData = JSON.parse(contents.toString('utf-8'));
+      return jsonData;
+    } catch (error) {
+      console.error('Error fetching health data:', error);
+      return null;
+    }
   }
 
     /**
@@ -114,9 +157,10 @@ class aiService {
    * Categorize ingredients based on medical report
    * @param {string} medicalReportText - Full text from OCR of medical report
    * @param {Array<string>} ingredients - List of available ingredients from fridge
+   * @param {string} uid - User ID to fetch health data from Firebase
    * @returns {Promise<Object>} Response with include/exclude arrays
    */
-  async categorizeIngredients(medicalReportText, ingredients) {
+  async categorizeIngredients(medicalReportText, ingredients, uid = null) {
     const promptPath = path.join(__dirname, 'prompts', 'includeExclude.txt');
     
     if (!fs.existsSync(promptPath)) {
@@ -128,6 +172,19 @@ class aiService {
     // Replace placeholders with actual data
     prompt = prompt.replace('// Report from api/process_ocr', medicalReportText);
     prompt = prompt.replace('// Report from api/analyze-fridge', JSON.stringify(ingredients));
+    
+    // Fetch and inject health data if uid is provided
+    let healthDataText = 'None';
+    if (uid) {
+      const healthData = await this.fetchHealthData(uid);
+      if (healthData) {
+        healthDataText = JSON.stringify(healthData, null, 2);
+      }
+    }
+
+    prompt = prompt.replace('// Report from uid/healthdata', healthDataText);
+
+    // console.log(prompt);
     
     const model = 'gemini-2.5-pro';
     

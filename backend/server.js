@@ -32,7 +32,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Initialize AI Service
 let aiService;
 try {
-  aiService = new GeminiService();
+  aiService = new GeminiService(process.env.GEMINI_API_KEY, admin);
   console.log(" AI Service initialized");
 } catch (error) {
   console.warn(" AI Service not initialized:", error.message);
@@ -140,7 +140,7 @@ app.post("/api/categorize-ingredients", async (req, res) => {
       return res.status(503).json({ error: "AI service not available" });
     }
 
-    const { medicalReportText, ingredients } = req.body;
+    const { medicalReportText, ingredients, uid } = req.body;
     
     if (!medicalReportText) {
       return res.status(400).json({ error: "medicalReportText is required (full_text from OCR)" });
@@ -150,7 +150,7 @@ app.post("/api/categorize-ingredients", async (req, res) => {
       return res.status(400).json({ error: "ingredients array is required (from analyze-fridge)" });
     }
 
-    const result = await aiService.categorizeIngredients(medicalReportText, ingredients);
+    const result = await aiService.categorizeIngredients(medicalReportText, ingredients, uid);
     
     res.json(result);
   } catch (error) {

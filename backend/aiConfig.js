@@ -43,24 +43,52 @@ const ingredientsAnalysisConfig = {
   },
   responseMimeType: 'application/json',
   responseSchema: {
-    type: Type.OBJECT,
-    required: ["include", "exclude"],
+    type: 'object',
     properties: {
       include: {
-        type: Type.ARRAY,
-        description: "List of safe ingredients the patient can consume",
+        type: 'array',
+        description: 'List of safe ingredients the patient can consume',
         items: {
-          type: Type.STRING,
+          type: 'string',
         },
       },
       exclude: {
-        type: Type.ARRAY,
-        description: "List of ingredients to avoid",
+        type: 'array',
+        description: 'List of ingredients to avoid based on medical conditions',
         items: {
-          type: Type.STRING,
+          type: 'string',
         },
       },
+      healthInsights: {
+        type: 'array',
+        description: 'Personalized health insights based on patient\'s conditions',
+        items: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: 'Health area title (e.g., "Blood Pressure Management", "Cholesterol Improvement")',
+            },
+            summary: {
+              type: 'string',
+              description: 'Encouraging summary of their progress or actionable guidance',
+            },
+          },
+          required: ['title', 'summary'],
+          propertyOrdering: ['title', 'summary'],
+        },
+      },
+      nutritionTips: {
+        type: 'string',
+        description: 'Actionable nutrition tip tailored to their health conditions',
+      },
+      smartShopping: {
+        type: 'string',
+        description: 'Practical shopping advice to support their dietary needs',
+      },
     },
+    required: ['include', 'exclude', 'healthInsights', 'nutritionTips', 'smartShopping'],
+    propertyOrdering: ['include', 'exclude', 'healthInsights', 'nutritionTips', 'smartShopping'],
   },
 };
 
