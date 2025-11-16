@@ -13,8 +13,9 @@ import {
   SlidersHorizontal,
   Utensils,
   CheckCircle2,
+  PlayCircle,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, use } from "react";
 import { Card } from "../components/ui/card";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import {
@@ -33,17 +34,13 @@ import {
   DialogTrigger,
 } from "../components/ui/dialog";
 
+import TextToSpeech from "./TextToSpeech";
+
 // Mock fridge ingredients
-const FRIDGE_INGREDIENTS = [
-  "chicken",
-  "tomato",
-  "onion",
-  "garlic",
-  "olive oil",
-];
+const FRIDGE_INGREDIENTS = ["chicken", "fish", "poop"];
 
 // Ingredients the user cannot eat
-const EXCLUDE_INGREDIENTS = ["peanut", "shrimp"];
+const EXCLUDE_INGREDIENTS = [""];
 
 // Cuisine filter list
 const CUISINES = [
@@ -89,6 +86,8 @@ export default function App() {
   const [savedRecipes, setSavedRecipes] = useState<Set<number>>(new Set());
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+  // test
+  const [selectedRecipeSteps, setSelectedRecipeSteps] = useState<string>("");
 
   const [filters, setFilters] = useState<RecipeFilters>({
     includeIngredients: [...FRIDGE_INGREDIENTS],
@@ -96,6 +95,21 @@ export default function App() {
     cuisine: "",
     diet: "",
   });
+
+  const getRecipeSteps = (recipe: RecipeDetails) => {
+    if (
+      recipe.analyzedInstructions &&
+      recipe.analyzedInstructions.length > 0 &&
+      recipe.analyzedInstructions[0].steps
+    ) {
+      const stepsString = recipe.analyzedInstructions[0].steps
+        .map((step, index) => `Step ${index + 1}: ${step.step}`)
+        .join(" ");
+      setSelectedRecipeSteps(stepsString);
+    } else {
+      setSelectedRecipeSteps("No instructions available.");
+    }
+  };
 
   // Memoized fetch function to prevent infinite loops
   const handleGetRecipes = useCallback(async () => {
@@ -174,6 +188,12 @@ export default function App() {
     setSavedRecipes(updated);
   };
 
+  useEffect(() => {
+    if (selectedRecipe) {
+      getRecipeSteps(selectedRecipe);
+    }
+  }, [selectedRecipe]);
+
   const getCurrentTime = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
@@ -242,7 +262,7 @@ export default function App() {
                 Available Ingredients
               </span>
             </div>
-            <div className="overflow-x-auto -mx-4 px-4">
+            <div className="overflow-x-auto -mx-4 px-4 scrollbar-hidden">
               <div className="flex gap-2 pb-2">
                 {filters.includeIngredients.map((ingredient, index) => (
                   <Badge
@@ -481,12 +501,12 @@ export default function App() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                 {/* Close Button */}
-                <button
+                {/* <button
                   onClick={closeRecipeModal}
                   className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-all size-6"
                 >
                   <X size={20} className="text-gray-900" />
-                </button>
+                </button> */}
 
                 {/* Save Button */}
                 <button
@@ -505,6 +525,10 @@ export default function App() {
                     }
                   />
                 </button>
+                <TextToSpeech
+                  text={selectedRecipeSteps}
+                  className="text-sm absolute top-4 left-1/7 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-all"
+                />
               </div>
 
               {/* Content */}

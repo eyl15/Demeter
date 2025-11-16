@@ -199,3 +199,18 @@ html {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Chrome, Safari and Opera */
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+/* IE and Edge */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+}
