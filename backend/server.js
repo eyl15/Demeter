@@ -16,7 +16,8 @@ const app = express();
 const allowedOrigins = [
   "https://demeter-p8z6.vercel.app", // your frontend preview
   "https://demeter-o662.vercel.app",  // your alias/general URL
-  "https://demeter-o662-8o1vntqyu-erics-projects-4a0395b7.vercel.app" // old preview if needed
+  "https://demeter-o662-8o1vntqyu-erics-projects-4a0395b7.vercel.app",
+  "https://www.wegotfoodathhome.health"
 ];
 app.use(cors({
   origin: function(origin, callback) {
