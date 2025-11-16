@@ -76,7 +76,7 @@ export async function updateDailyNutritionTotals(uid: string) {
   const dateKey = `${yyyy}-${mm}-${dd}`;
 
   try {
-    const response = await fetch(`http://localhost:8080/${uid}/recipes/saved/${dateKey}`);
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/${uid}/recipes/saved/${dateKey}`);
     if (!response.ok) {
       console.warn(`[RECIPES] No saved recipes found for ${uid} on ${dateKey}`);
       await setDoc(

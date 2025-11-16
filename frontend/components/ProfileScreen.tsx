@@ -31,7 +31,7 @@ export default function ProfileScreen() {
       console.log(`[PROFILE] Fetching healthdata for uid: ${user.uid}`);
 
       try {
-        const res = await fetch(`http://localhost:8080/${user.uid}/healthdata`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/${user.uid}/healthdata`);
 
         console.log(`[PROFILE] Healthdata response status: ${res.status}`);
 

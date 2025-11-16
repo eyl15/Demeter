@@ -96,7 +96,7 @@ GET /ocr-results/:uid
 
 ### Step 1: Upload Image
 ```bash
-curl -X POST http://localhost:8080/upload \
+curl -X POST ${import.meta.env.VITE_API_URL}/upload \
   -F "file=@document.jpg" \
   -F "uid=user123" \
   -F "folder=images"
@@ -105,7 +105,7 @@ curl -X POST http://localhost:8080/upload \
 
 ### Step 2: Trigger OCR
 ```bash
-curl -X POST http://localhost:8080/process-ocr \
+curl -X POST ${import.meta.env.VITE_API_URL}/process-ocr \
   -H "Content-Type: application/json" \
   -d '{"uid": "user123"}'
 ```
@@ -116,7 +116,7 @@ curl -X POST http://localhost:8080/process-ocr \
 
 ### Step 3: Retrieve Results
 ```bash
-curl -X GET http://localhost:8080/ocr-results/user123
+curl -X GET ${import.meta.env.VITE_API_URL}/ocr-results/user123
 ```
 **Result:**
 ```json

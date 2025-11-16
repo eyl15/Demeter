@@ -80,7 +80,7 @@ function AuthPage() {
     formData.append("uid", user.uid); // required for user-specific path
 
     try {
-      const res = await fetch("http://localhost:8080/upload", {
+      const res = await fetch("${import.meta.env.VITE_API_URL}/upload", {
         method: "POST",
         body: formData,
       });

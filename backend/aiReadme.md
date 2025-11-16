@@ -35,7 +35,7 @@ node server.js
 ### Analyze Fridge Image
 
 ```bash
-POST http://localhost:8080/api/analyze-fridge
+POST ${import.meta.env.VITE_API_URL}/api/analyze-fridge
 Content-Type: application/json
 
 {
@@ -137,7 +137,7 @@ Current settings in `aiService.js`:
 
 ```javascript
 async function analyzeFridge(uid) {
-  const response = await fetch('http://localhost:8080/api/analyze-fridge', {
+  const response = await fetch('${import.meta.env.VITE_API_URL}/api/analyze-fridge', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ uid }),

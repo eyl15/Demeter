@@ -148,7 +148,7 @@ python3 quickstart.py
 
 **Upload Image:**
 ```bash
-curl -X POST http://localhost:8080/upload \
+curl -X POST ${import.meta.env.VITE_API_URL}/upload \
   -F "file=@document.jpg" \
   -F "uid=user123" \
   -F "folder=images"
@@ -156,14 +156,14 @@ curl -X POST http://localhost:8080/upload \
 
 **Process OCR:**
 ```bash
-curl -X POST http://localhost:8080/process-ocr \
+curl -X POST ${import.meta.env.VITE_API_URL}/process-ocr \
   -H "Content-Type: application/json" \
   -d '{"uid": "user123"}'
 ```
 
 **Get Results:**
 ```bash
-curl http://localhost:8080/ocr-results/user123
+curl ${import.meta.env.VITE_API_URL}/ocr-results/user123
 ```
 
 ---

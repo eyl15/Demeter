@@ -28,7 +28,7 @@ const uploadToServer = async (
   formData.append("folder", folder); // send folder info to backend
 
   try {
-    const res = await fetch("http://localhost:8080/upload", {
+    const res = await fetch("${import.meta.env.VITE_API_URL}/upload", {
       method: "POST",
       body: formData,
     });
@@ -105,7 +105,7 @@ export const uploadBookmarkedRecipe = (file: File | null, uid: string | null, on
 export const getBookmarkedRecipe = async (uid: string | null): Promise<RecipeDetails[]> => {
   if (!uid) throw new Error("Missing uid");
 
-  const url = `http://localhost:8080/${encodeURIComponent(uid)}/recipes/bookmarked/`;
+  const url = `${import.meta.env.VITE_API_URL}/${encodeURIComponent(uid)}/recipes/bookmarked/`;
   const res = await fetch(url, { method: "GET" });
 
   if (!res.ok) {

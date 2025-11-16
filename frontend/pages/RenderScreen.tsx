@@ -29,7 +29,7 @@ const App = () => {
       }
 
       try {
-        const res = await fetch(`http://localhost:8080/${user.uid}/healthdata`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/${user.uid}/healthdata`);
         setHealthProfile(await res.json());
         if (res.ok) {
           // Health data exists, skip profile setup
@@ -71,7 +71,7 @@ const App = () => {
     const user = auth.currentUser;
     if (user) {
       try {
-        const res = await fetch(`http://localhost:8080/${user.uid}/healthdata`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/${user.uid}/healthdata`);
         if (res.ok) {
           const data = await res.json();
           setHealthProfile(data);

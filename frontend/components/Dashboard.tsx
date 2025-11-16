@@ -126,7 +126,7 @@ export default function Dashboard({
 
         // Fetch all saved recipes for today
         const response = await fetch(
-          `http://localhost:8080/${uid}/recipes/saved/${dateKey}`
+          `${import.meta.env.VITE_API_URL}/${uid}/recipes/saved/${dateKey}`
         );
         if (!response.ok) {
           console.warn(`No saved recipes for ${uid} on ${dateKey}`);

@@ -34,7 +34,7 @@ export default function GroceryStoreScreen({ onBack }: GroceryStoreScreenProps) 
   const fetchNearbyGroceryStores = async (location: { lat: number; lng: number }) => {
     try {
       // console.log("[GROCERY] Fetching stores for location:", location);
-      const url = `http://localhost:8080/api/nearby-stores`;
+      const url = `${import.meta.env.VITE_API_URL}/api/nearby-stores`;
       // console.log("[GROCERY] API URL:", url);
       
       const response = await fetch(url, {

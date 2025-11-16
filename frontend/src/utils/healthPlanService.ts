@@ -108,7 +108,7 @@ export const clearHealthPlanData = (): void => {
 
 // ============ API Functions ============
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '${import.meta.env.VITE_API_URL}';
 
 /**
  * Process OCR for medical report
