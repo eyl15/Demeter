@@ -17,6 +17,7 @@ const App = () => {
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [scannedItems, setScannedItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [healthProfile, setHealthProfile] = useState<any>(null);
 
   // -------------------- Fetch health data on mount --------------------
   useEffect(() => {
@@ -28,7 +29,8 @@ const App = () => {
       }
 
       try {
-        const res = await fetch(`http://localhost:8080/healthdata/${user.uid}`);
+        const res = await fetch(`http://localhost:8080/${user.uid}/healthdata`);
+        setHealthProfile(await res.json());
         if (res.ok) {
           // Health data exists, skip profile setup
           setCurrentScreen("home");
@@ -36,7 +38,10 @@ const App = () => {
           // No health data, go to profile setup
           setCurrentScreen("profile-setup");
         } else {
-          console.warn("Unexpected response from healthdata endpoint", res.status);
+          console.warn(
+            "Unexpected response from healthdata endpoint",
+            res.status
+          );
           setCurrentScreen("profile-setup");
         }
       } catch (err) {
@@ -78,15 +83,36 @@ const App = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case "onboarding":
-        return <OnboardingScreen step={onboardingStep} onNext={handleOnboardingNext} />;
+        return (
+          <OnboardingScreen
+            step={onboardingStep}
+            onNext={handleOnboardingNext}
+          />
+        );
       case "profile-setup":
         return <HealthProfileSetup onComplete={handleProfileComplete} />;
       case "home":
-        return <Dashboard onNavigate={setCurrentScreen} healthProfile={null} />;
+        return (
+          <Dashboard
+            onNavigate={setCurrentScreen}
+            healthProfile={healthProfile}
+          />
+        );
       case "scan":
-        return <ReceiptScanScreen onBack={() => setCurrentScreen("home")} onNavigate={setCurrentScreen} />;
+        return (
+          <ReceiptScanScreen
+            onBack={() => setCurrentScreen("home")}
+            onNavigate={setCurrentScreen}
+          />
+        );
       case "receipt-confirm":
-        return <ReceiptConfirmScreen items={scannedItems} onConfirm={handleReceiptConfirm} onBack={() => setCurrentScreen("scan")} />;
+        return (
+          <ReceiptConfirmScreen
+            items={scannedItems}
+            onConfirm={handleReceiptConfirm}
+            onBack={() => setCurrentScreen("scan")}
+          />
+        );
       case "recipes":
         return <RecipesScreen onNavigate={setCurrentScreen} />;
       case "meal-prep":
@@ -102,13 +128,23 @@ const App = () => {
     }
   };
 
-  const showBottomNav = !["onboarding", "profile-setup", "scan", "receipt-confirm"].includes(currentScreen);
+  const showBottomNav = ![
+    "onboarding",
+    "profile-setup",
+    "scan",
+    "receipt-confirm",
+  ].includes(currentScreen);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <div className="relative w-full max-w-[390px] h-screen bg-white shadow-2xl overflow-hidden">
         {renderScreen()}
-        {showBottomNav && <BottomNav currentScreen={currentScreen} onNavigate={setCurrentScreen} />}
+        {showBottomNav && (
+          <BottomNav
+            currentScreen={currentScreen}
+            onNavigate={setCurrentScreen}
+          />
+        )}
       </div>
     </div>
   );

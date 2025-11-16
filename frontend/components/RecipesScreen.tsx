@@ -20,10 +20,7 @@ import {
 } from "../src/utils/spoonacular";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-} from "../components/ui/dialog";
+import { Dialog, DialogContent } from "../components/ui/dialog";
 import { getCategorization } from "../src/utils/healthPlanService";
 import { auth } from "../firebaseConfig";
 
@@ -35,7 +32,11 @@ import { uploadSavedRecipe } from "../src/utils/uploadService";
 import { updateDailyNutritionTotals } from "../src/utils/dailyNutrition";
 
 // INGREDIENTS the user cannot eat
-export default function App() {
+export default function RecipesScreen({
+  onNavigate,
+}: {
+  onNavigate?: (screen: string) => void;
+}) {
   const [recipeList, setRecipeList] = useState<RecipeDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,17 +53,22 @@ export default function App() {
 
   // Fetch categorization data on mount
   useEffect(() => {
-    console.log("🔍 RecipesScreen: useEffect triggered - starting to fetch categorization data");
-    
+    console.log(
+      "🔍 RecipesScreen: useEffect triggered - starting to fetch categorization data"
+    );
+
     const fetchCategorizationData = async () => {
       console.log("📊 RecipesScreen: Setting loadingIngredients to true");
       setLoadingIngredients(true);
-      
+
       try {
         console.log("👤 RecipesScreen: Checking current user from auth");
         const user = auth.currentUser;
-        console.log("👤 RecipesScreen: Current user:", user ? `UID: ${user.uid}` : "No user signed in");
-        
+        console.log(
+          "👤 RecipesScreen: Current user:",
+          user ? `UID: ${user.uid}` : "No user signed in"
+        );
+
         if (!user) {
           console.error("❌ RecipesScreen: No user signed in");
           setError("Please sign in to view recipes");
@@ -70,31 +76,38 @@ export default function App() {
           return;
         }
 
-        console.log("💾 RecipesScreen: Attempting to get cached categorization data");
+        console.log(
+          "💾 RecipesScreen: Attempting to get cached categorization data"
+        );
         // Try to get cached categorization data
         const cachedData = getCategorization();
         console.log("💾 RecipesScreen: Cached data result:", cachedData);
-        
+
         if (cachedData) {
           console.log("✅ RecipesScreen: Found cached data:", {
             include: cachedData.include,
             exclude: cachedData.exclude,
-            timestamp: cachedData.timestamp
+            timestamp: cachedData.timestamp,
           });
-          
+
           setIncludeIngredients(cachedData.include || []);
           setExcludeIngredients(cachedData.exclude || []);
-          
+
           console.log("✅ RecipesScreen: Successfully set ingredients:", {
             includeCount: (cachedData.include || []).length,
-            excludeCount: (cachedData.exclude || []).length
+            excludeCount: (cachedData.exclude || []).length,
           });
         } else {
           console.warn("⚠️ RecipesScreen: No cached categorization data found");
-          setError("No health plan data found. Please complete your health profile setup first.");
+          setError(
+            "No health plan data found. Please complete your health profile setup first."
+          );
         }
       } catch (err) {
-        console.error("❌ RecipesScreen: Error loading categorization data:", err);
+        console.error(
+          "❌ RecipesScreen: Error loading categorization data:",
+          err
+        );
         setError("Failed to load ingredient preferences");
       } finally {
         console.log("🏁 RecipesScreen: Setting loadingIngredients to false");
@@ -129,7 +142,9 @@ export default function App() {
 
     if (includeIngredients.length === 0) {
       console.error("❌ RecipesScreen: No include ingredients available");
-      setError("No ingredients available. Please complete your health profile setup first.");
+      setError(
+        "No ingredients available. Please complete your health profile setup first."
+      );
       return;
     }
 
@@ -137,7 +152,10 @@ export default function App() {
     setError(null);
 
     try {
-      console.log("🔎 RecipesScreen: Searching recipes with ingredients:", includeIngredients);
+      console.log(
+        "🔎 RecipesScreen: Searching recipes with ingredients:",
+        includeIngredients
+      );
       // Get recipes matching fridge ingredients
       const good_recipes = await findRecipesByIngredients(
         includeIngredients,
@@ -153,11 +171,18 @@ export default function App() {
       // Bulk fetch full info
       console.log("📊 RecipesScreen: Fetching bulk recipe information");
       const full_info = await getRecipeInformationBulk(good_ids, true);
-      console.log("✅ RecipesScreen: Retrieved full info for", full_info.length, "recipes");
+      console.log(
+        "✅ RecipesScreen: Retrieved full info for",
+        full_info.length,
+        "recipes"
+      );
 
       // Lowercase the excluded ingredients
       const loweredBad = excludeIngredients.map((b) => b.toLowerCase());
-      console.log("🚫 RecipesScreen: Lowercased excluded ingredients:", loweredBad);
+      console.log(
+        "🚫 RecipesScreen: Lowercased excluded ingredients:",
+        loweredBad
+      );
 
       // Filter recipes that do not contain any excluded ingredient
       const valid_recipes = full_info.filter((recipe: any) => {
@@ -175,7 +200,10 @@ export default function App() {
         return !hasBadIngredient;
       });
 
-      console.log("✅ RecipesScreen: Valid recipes after filtering:", valid_recipes.length);
+      console.log(
+        "✅ RecipesScreen: Valid recipes after filtering:",
+        valid_recipes.length
+      );
       setRecipeList(valid_recipes);
       console.log("📋 RecipesScreen: Final recipe list:", valid_recipes);
     } catch (err) {
@@ -279,21 +307,22 @@ export default function App() {
       });
 
       await updateDailyNutritionTotals(uid);
-
     } catch (error) {
       console.error("Error saving recipe:", error);
     }
   };
 
-
   // ------------------- Render -------------------
-  
+
   // Show loading state while fetching ingredients
   if (loadingIngredients) {
     return (
       <div className="h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 size={48} className="animate-spin text-violet-600 mx-auto mb-4" />
+          <Loader2
+            size={48}
+            className="animate-spin text-violet-600 mx-auto mb-4"
+          />
           <p className="text-gray-600">Loading your personalized recipes...</p>
         </div>
       </div>
@@ -444,7 +473,8 @@ export default function App() {
           <Card className="p-16 text-center bg-white border-0 shadow-sm rounded-3xl">
             <h3 className="text-gray-900 mb-2">No ingredients available</h3>
             <p className="text-gray-600 mb-4 text-sm">
-              Please complete your health profile setup to get personalized recipes
+              Please complete your health profile setup to get personalized
+              recipes
             </p>
           </Card>
         ) : (

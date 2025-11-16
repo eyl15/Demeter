@@ -22,7 +22,9 @@ const io = socketIo(server, { cors: { origin: "*" } });
 
 // Firebase Admin SDK
 admin.initializeApp({
-  credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_KEY)),
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIREBASE_SERVICE_KEY)
+  ),
   storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
 });
 const bucket = admin.storage().bucket();
@@ -49,8 +51,8 @@ try {
 }
 
 // Register ElevenLabs routes
-const elevenlabsRouter = require('./elevenlabs/route');
-app.use('/api', elevenlabsRouter);
+const elevenlabsRouter = require("./elevenlabs/route");
+app.use("/api", elevenlabsRouter);
 
 // ---------------- Google Places API (New) endpoint ----------------
 app.post("/api/nearby-stores", async (req, res) => {
@@ -58,23 +60,27 @@ app.post("/api/nearby-stores", async (req, res) => {
     console.log("[NEARBY-STORES] Request received");
     const { lat, lng } = req.body;
     console.log("[NEARBY-STORES] Params:", { lat, lng });
-    
+
     if (!lat || !lng) {
       console.error("[NEARBY-STORES] Missing lat or lng");
-      return res.status(400).json({ error: "Latitude and longitude are required" });
+      return res
+        .status(400)
+        .json({ error: "Latitude and longitude are required" });
     }
 
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     console.log("[NEARBY-STORES] API Key present:", !!apiKey);
     if (!apiKey) {
       console.error("[NEARBY-STORES] No API key configured");
-      return res.status(500).json({ error: "Google Maps API key not configured" });
+      return res
+        .status(500)
+        .json({ error: "Google Maps API key not configured" });
     }
 
     // New Places API endpoint
     const url = `https://places.googleapis.com/v1/places:searchNearby`;
     console.log("[NEARBY-STORES] Calling Google Places API (New)");
-    
+
     // Request body for new Places API
     const requestBody = JSON.stringify({
       includedTypes: ["grocery_store", "supermarket"],
@@ -83,64 +89,76 @@ app.post("/api/nearby-stores", async (req, res) => {
         circle: {
           center: {
             latitude: parseFloat(lat),
-            longitude: parseFloat(lng)
+            longitude: parseFloat(lng),
           },
-          radius: 5000.0
-        }
-      }
+          radius: 5000.0,
+        },
+      },
     });
 
     const options = {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.rating,places.currentOpeningHours,places.id'
-      }
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask":
+          "places.displayName,places.formattedAddress,places.location,places.rating,places.currentOpeningHours,places.id",
+      },
     };
 
     const apiRequest = https.request(url, options, (apiResponse) => {
-      let data = '';
-      
-      apiResponse.on('data', (chunk) => {
+      let data = "";
+
+      apiResponse.on("data", (chunk) => {
         data += chunk;
       });
-      
-      apiResponse.on('end', () => {
+
+      apiResponse.on("end", () => {
         try {
           // console.log("[NEARBY-STORES] Google API response status:", apiResponse.statusCode);
           const parsedData = JSON.parse(data);
           // console.log("[NEARBY-STORES] Number of results:", parsedData.places?.length || 0);
-          
+
           if (apiResponse.statusCode === 200 && parsedData.places) {
             // Transform new API response to match legacy format for frontend compatibility
             const transformedData = {
               status: "OK",
-              results: parsedData.places.map(place => ({
+              results: parsedData.places.map((place) => ({
                 place_id: place.id,
                 name: place.displayName?.text || "Unknown Store",
                 vicinity: place.formattedAddress || "",
                 geometry: {
                   location: {
                     lat: place.location?.latitude || 0,
-                    lng: place.location?.longitude || 0
-                  }
+                    lng: place.location?.longitude || 0,
+                  },
                 },
                 rating: place.rating,
-                opening_hours: place.currentOpeningHours ? {
-                  open_now: place.currentOpeningHours.openNow
-                } : undefined
-              }))
+                opening_hours: place.currentOpeningHours
+                  ? {
+                      open_now: place.currentOpeningHours.openNow,
+                    }
+                  : undefined,
+              })),
             };
-            
-            console.log("[NEARBY-STORES] Sending successful response with", transformedData.results.length, "stores");
+
+            console.log(
+              "[NEARBY-STORES] Sending successful response with",
+              transformedData.results.length,
+              "stores"
+            );
             res.json(transformedData);
           } else if (apiResponse.statusCode === 200 && !parsedData.places) {
             console.log("[NEARBY-STORES] No stores found in area");
             res.json({ status: "ZERO_RESULTS", results: [] });
           } else {
-            console.error("[NEARBY-STORES] Google Places API error:", parsedData);
-            res.status(apiResponse.statusCode).json({ error: parsedData.error?.message || "API error" });
+            console.error(
+              "[NEARBY-STORES] Google Places API error:",
+              parsedData
+            );
+            res
+              .status(apiResponse.statusCode)
+              .json({ error: parsedData.error?.message || "API error" });
           }
         } catch (parseError) {
           console.error("[NEARBY-STORES] Error parsing response:", parseError);
@@ -150,14 +168,13 @@ app.post("/api/nearby-stores", async (req, res) => {
       });
     });
 
-    apiRequest.on('error', (error) => {
+    apiRequest.on("error", (error) => {
       console.error("[NEARBY-STORES] HTTPS request error:", error);
       res.status(500).json({ error: error.message });
     });
 
     apiRequest.write(requestBody);
     apiRequest.end();
-    
   } catch (error) {
     console.error("[NEARBY-STORES] Exception caught:", error);
     console.error("[NEARBY-STORES] Error message:", error.message);
@@ -184,24 +201,29 @@ app.post("/api/analyze-fridge", async (req, res) => {
     const prefix = `${uid}/images/fridge/`;
     const [files] = await bucket.getFiles({ prefix });
 
-    // Debug 
+    // Debug
     // console.log(`Found ${files.length} files with prefix: ${prefix}`);
     // console.log('Files:', files.map(f => f.name));
 
     if (files.length === 0) {
-      return res.status(404).json({ error: "No fridge images found for this user" });
+      return res
+        .status(404)
+        .json({ error: "No fridge images found for this user" });
     }
 
     // Sort by timeCreated to get the latest
-    files.sort((a, b) => new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated));
+    files.sort(
+      (a, b) =>
+        new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated)
+    );
     const latestFile = files[0];
 
     // console.log(`Analyzing latest fridge image: ${latestFile.name}`);
 
     const [imageBuffer] = await latestFile.download();
-    const mimeType = latestFile.metadata.contentType || 'image/jpeg';
+    const mimeType = latestFile.metadata.contentType || "image/jpeg";
     const response = await aiService.analyzeFridgeImage(imageBuffer, mimeType);
-    
+
     res.json(response);
   } catch (error) {
     console.error("Fridge analysis error:", error);
@@ -219,20 +241,25 @@ app.post("/api/process-ocr", async (req, res) => {
     }
 
     const { uid, configType } = req.body;
-    
+
     if (!uid) {
       return res.status(400).json({ error: "User ID (uid) is required" });
     }
 
-    const folder = "medical_report"; 
+    const folder = "medical_report";
     const prefix = `${uid}/images/${folder}/`;
     const [files] = await bucket.getFiles({ prefix });
 
     if (files.length === 0) {
-      return res.status(404).json({ error: `No images found in ${folder} folder for this user` });
+      return res
+        .status(404)
+        .json({ error: `No images found in ${folder} folder for this user` });
     }
 
-    files.sort((a, b) => new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated));
+    files.sort(
+      (a, b) =>
+        new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated)
+    );
     const latestFile = files[0];
 
     console.log(`Processing latest image: ${latestFile.name}`);
@@ -240,7 +267,7 @@ app.post("/api/process-ocr", async (req, res) => {
     const [imageBuffer] = await latestFile.download();
     const service = configType ? new OCRService(configType) : ocrService;
     const result = await service.processLatestImage(uid, folder);
-    
+
     res.json(result);
   } catch (error) {
     console.error("OCR processing error:", error);
@@ -256,17 +283,25 @@ app.post("/api/categorize-ingredients", async (req, res) => {
     }
 
     const { medicalReportText, ingredients, uid } = req.body;
-    
+
     if (!medicalReportText) {
-      return res.status(400).json({ error: "medicalReportText is required (full_text from OCR)" });
+      return res
+        .status(400)
+        .json({ error: "medicalReportText is required (full_text from OCR)" });
     }
 
     if (!ingredients || !Array.isArray(ingredients)) {
-      return res.status(400).json({ error: "ingredients array is required (from analyze-fridge)" });
+      return res
+        .status(400)
+        .json({ error: "ingredients array is required (from analyze-fridge)" });
     }
 
-    const result = await aiService.categorizeIngredients(medicalReportText, ingredients, uid);
-    
+    const result = await aiService.categorizeIngredients(
+      medicalReportText,
+      ingredients,
+      uid
+    );
+
     res.json(result);
   } catch (error) {
     console.error("Ingredient categorization error:", error);
@@ -282,7 +317,10 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     if (!uid) return res.status(400).send("Missing uid");
 
     let folder;
-    if (req.file.mimetype.startsWith("image/") || req.file.mimetype === "application/pdf") {
+    if (
+      req.file.mimetype.startsWith("image/") ||
+      req.file.mimetype === "application/pdf"
+    ) {
       folder = "images";
     } else if (req.file.mimetype === "application/json") {
       folder = "files";
@@ -323,13 +361,20 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     // JSON payload, parse and include its content in the response so the
     // client (frontend) can immediately access savedRecipeIds without a
     // subsequent GET request.
-    const responsePayload = { url, name: req.file.originalname, path: storagePath };
+    const responsePayload = {
+      url,
+      name: req.file.originalname,
+      path: storagePath,
+    };
     if (req.file.mimetype === "application/json") {
       try {
         const text = req.file.buffer.toString("utf-8");
         responsePayload.content = JSON.parse(text);
       } catch (parseErr) {
-        console.warn("[UPLOAD] Failed to parse uploaded JSON content:", parseErr.message);
+        console.warn(
+          "[UPLOAD] Failed to parse uploaded JSON content:",
+          parseErr.message
+        );
         responsePayload.contentError = parseErr.message;
       }
     }
@@ -355,7 +400,9 @@ app.get("/:uid/healthdata", async (req, res) => {
     if (!files || files.length === 0) {
       console.warn(`[HEALTHDATA] No files found for UID: ${uid}`);
       console.warn(`[HEALTHDATA] Checked prefix: ${prefix}`);
-      return res.status(404).json({ error: "No healthdata found", prefix, uid });
+      return res
+        .status(404)
+        .json({ error: "No healthdata found", prefix, uid });
     }
 
     // Sort files by timestamp in filename (assuming <timestamp>-<filename>.json)
@@ -371,7 +418,9 @@ app.get("/:uid/healthdata", async (req, res) => {
       const bFileName = b.name.split("/").pop() || "";
       const aTime = parseInt(aFileName.split("-")[0] || "0");
       const bTime = parseInt(bFileName.split("-")[0] || "0");
-      console.log(`[HEALTHDATA] Comparing ${aFileName} (${aTime}) vs ${bFileName} (${bTime})`);
+      console.log(
+        `[HEALTHDATA] Comparing ${aFileName} (${aTime}) vs ${bFileName} (${bTime})`
+      );
       return bTime - aTime;
     })[0];
 
@@ -385,7 +434,9 @@ app.get("/:uid/healthdata", async (req, res) => {
     res.json(jsonData);
   } catch (err) {
     console.error("[HEALTHDATA] Error fetching healthdata:", err);
-    res.status(500).json({ error: "Failed to fetch healthdata", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch healthdata", details: err.message });
   }
 });
 
@@ -401,11 +452,16 @@ app.get("/:uid/recipes/bookmarked/", async (req, res) => {
 
     if (!files || files.length === 0) {
       console.warn(`[BOOKMARKED] No files found for UID: ${uid}`);
-      return res.status(404).json({ error: "No bookmarked recipes found", prefix, uid });
+      return res
+        .status(404)
+        .json({ error: "No bookmarked recipes found", prefix, uid });
     }
 
     // Sort by timeCreated to get the latest
-    files.sort((a, b) => new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated));
+    files.sort(
+      (a, b) =>
+        new Date(b.metadata.timeCreated) - new Date(a.metadata.timeCreated)
+    );
     const latestFile = files[0];
 
     console.log(`[BOOKMARKED] Serving latest file: ${latestFile.name}`);
@@ -417,22 +473,30 @@ app.get("/:uid/recipes/bookmarked/", async (req, res) => {
     res.json(jsonData);
   } catch (err) {
     console.error("[BOOKMARKED] Error fetching bookmarked recipes:", err);
-    res.status(500).json({ error: "Failed to fetch bookmarked recipes", details: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to fetch bookmarked recipes",
+        details: err.message,
+      });
   }
 });
 
 // ---------------- WebSocket ----------------
 io.on("connection", (socket) => {
   console.log("Client connected");
-  socket.on("startProcess", () => socket.emit("processComplete", "Dummy output"));
+  socket.on("startProcess", () =>
+    socket.emit("processComplete", "Dummy output")
+  );
   socket.on("disconnect", () => console.log("Client disconnected"));
 });
 
 // ---------------- Recipe endpoint ----------------
 app.get("/:uid/recipes/saved/:date", async (req, res) => {
   try {
-    const { uid, date } = req.params; 
-    if (!uid || !date) return res.status(400).json({ error: "Missing uid or date" });
+    const { uid, date } = req.params;
+    if (!uid || !date)
+      return res.status(400).json({ error: "Missing uid or date" });
 
     const prefix = `${uid}/recipes/saved/${date}/`;
     console.log(`[RECIPES] Fetching saved recipes with prefix: ${prefix}`);
@@ -440,8 +504,12 @@ app.get("/:uid/recipes/saved/:date", async (req, res) => {
     const [files] = await bucket.getFiles({ prefix });
 
     if (!files || files.length === 0) {
-      console.warn(`[RECIPES] No saved recipes found for UID: ${uid} on ${date}`);
-      return res.status(404).json({ error: "No recipes found for this date", prefix, uid, date });
+      console.warn(
+        `[RECIPES] No saved recipes found for UID: ${uid} on ${date}`
+      );
+      return res
+        .status(404)
+        .json({ error: "No recipes found for this date", prefix, uid, date });
     }
 
     const sortedFiles = files.sort((a, b) => {
@@ -456,7 +524,10 @@ app.get("/:uid/recipes/saved/:date", async (req, res) => {
           const [content] = await f.download();
           return JSON.parse(content.toString("utf-8"));
         } catch (err) {
-          console.warn(`[RECIPES] Failed to parse JSON for file ${f.name}:`, err.message);
+          console.warn(
+            `[RECIPES] Failed to parse JSON for file ${f.name}:`,
+            err.message
+          );
           return null;
         }
       })
@@ -465,7 +536,9 @@ app.get("/:uid/recipes/saved/:date", async (req, res) => {
     res.json(recipes.filter(Boolean));
   } catch (err) {
     console.error("[RECIPES] Error fetching saved recipes:", err);
-    res.status(500).json({ error: "Failed to fetch recipes", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to fetch recipes", details: err.message });
   }
 });
 

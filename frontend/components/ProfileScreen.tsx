@@ -31,7 +31,8 @@ export default function ProfileScreen() {
       console.log(`[PROFILE] Fetching healthdata for uid: ${user.uid}`);
 
       try {
-        const res = await fetch(`http://localhost:8080/healthdata/${user.uid}`);
+        const res = await fetch(`http://localhost:8080/${user.uid}/healthdata`);
+
         console.log(`[PROFILE] Healthdata response status: ${res.status}`);
 
         if (!res.ok) {
@@ -46,7 +47,7 @@ export default function ProfileScreen() {
         // Extract firstName and lastName from the nested personalInfo structure
         const firstName = data.personalInfo?.firstName || "User";
         const lastName = data.personalInfo?.lastName || "";
-        
+
         setFirstName(firstName);
         setLastName(lastName);
 
@@ -61,7 +62,7 @@ export default function ProfileScreen() {
         if (data.conditions?.diabetes) {
           conditions.push("Diabetes");
         }
-        
+
         setActiveConditions(conditions);
         console.log("[PROFILE] Active conditions:", conditions);
       } catch (err) {
@@ -73,8 +74,7 @@ export default function ProfileScreen() {
     fetchProfile();
   }, []);
 
-  const initials =
-    (firstName?.[0] || "") + (lastName?.[0] || "");
+  const initials = (firstName?.[0] || "") + (lastName?.[0] || "");
 
   return (
     <div className="flex flex-col h-full bg-gray-50 pb-20">
@@ -115,8 +115,8 @@ export default function ProfileScreen() {
                         condition === "High Blood Pressure"
                           ? "bg-red-100 text-red-700"
                           : condition === "High Cholesterol"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-blue-100 text-blue-700"
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-blue-100 text-blue-700"
                       }`}
                     >
                       {condition}
